@@ -1,0 +1,24 @@
+FROM gradle:8 AS builder
+WORKDIR /home/nonroot/app
+COPY build.gradle settings.gradle ./
+COPY gradle/ gradle/
+COPY src/ src/
+RUN gradle clean bootJar
+
+#RUN chmod -R 755 /home/nonroot/app
+
+#second stage
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /home/nonroot/app
+ARG UID=1003
+ARG GID=1003
+RUN addgroup -g $GID nonroot && \
+    adduser -u $UID -G nonroot -D nonroot &&  \
+    echo 'nonroot ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+COPY --from=builder --chown=nonroot:nonroot /home/nonroot/app/build/libs/*.jar app.jar
+USER nonroot
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["-start"]
+

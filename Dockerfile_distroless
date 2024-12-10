@@ -1,0 +1,13 @@
+FROM gradle:8 AS builder
+WORKDIR /home/distroless
+COPY build.gradle settings.gradle ./
+COPY gradle/ gradle/
+COPY src/ src/
+RUN gradle clean bootJar
+
+#second stage
+FROM gcr.io/distroless/java21-debian12:latest
+WORKDIR /home/distroless
+COPY --from=builder /home/distroless/build/libs/*.jar app.jar
+EXPOSE 8080
+CMD ["java", "-jar", "app.jar"]

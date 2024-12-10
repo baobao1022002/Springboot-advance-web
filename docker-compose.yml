@@ -1,0 +1,63 @@
+services:
+  app:
+    image:
+      javaspringnormal:v2
+    ports:
+      - 8050:8080
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"  # limit container using max 1 CPU
+          memory: 512M  # limit max memory is 512MB
+        reservations: # min resource needed
+          cpus: '0.25'
+          memory: 20M
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: always
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://mariadb:3306/shop?createDatabaseIfNotExist=true&autoReconnect=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=
+    networks:
+      - springboot-network
+  mariadb:
+    image: mariadb:11
+    restart: always
+    ports:
+      - 3309:3306
+    environment:
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1
+    volumes:
+      - /mnt/wsl/docker-data/mariadb-data:/var/lib/mysql
+    networks:
+      - springboot-network
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized" ]
+      start_period: 1m
+      interval: 1m
+      timeout: 5s
+      retries: 3
+
+  keycloak:
+    image: 	keycloak/keycloak:26.0
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - springboot-network
+
+  redis:
+    image: 	redis:8.0-M01-bookworm
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis-data:/data
+    networks:
+      - springboot-network
+networks:
+  springboot-network:
+
+

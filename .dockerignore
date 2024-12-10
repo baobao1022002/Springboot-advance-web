@@ -1,0 +1,24 @@
+# Ignore Gradle build outputs
+# Ignore other build outputs, but keep build/libs/ for JAR
+.gradle/
+build/*
+!build/libs/
+
+
+# Ignore Git files
+.git/
+.gitignore
+
+# Ignore IDE config files
+.idea/
+.vscode/
+
+# Ignore README and other documents
+README.md
+HELP.md
+docs/
+
+# Keep build.gradle and settings.gradle for the second build
+!build.gradle
+!settings.gradle
+!gradle/**
